@@ -2,6 +2,12 @@ package br.com.automaticdiary.resources;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.Cursor;
+import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 
 import br.com.automaticdiary.entities.Activity;
 import br.com.automaticdiary.ui.register_fragments.RegisterActivity;
@@ -32,6 +38,45 @@ public class DB {
                 activity.getCategory() +
                 "'))");
 
+        database.close();
+        Toast.makeText(context.getContext(), "Atividade registrada com sucesso!", Toast.LENGTH_LONG).show();
+    }
+
+    public static List<Activity> findAllRegisterActivity(RegisterActivity context){
+        SQLiteDatabase database = context.getActivity().openOrCreateDatabase("AutomaticDiaryDB",context.getActivity().MODE_PRIVATE, null);
+
+        Cursor cursor = database.rawQuery("SELECT * FROM activitys ORDER BY id DESC;",null);
+
+        List<Activity> listActivity = new ArrayList<>();
+
+        while(cursor.moveToNext()){
+            int idColumn = cursor.getColumnIndex("id");
+            int titleColumn = cursor.getColumnIndex("title");
+            int performanceColumn = cursor.getColumnIndex("performance");
+            int scoreColumn = cursor.getColumnIndex("score");
+            int startColumn = cursor.getColumnIndex("start");
+            int finishColumn = cursor.getColumnIndex("finish");
+            int descriptionColumn = cursor.getColumnIndex("description");
+            int categoryColumn = cursor.getColumnIndex("category");
+
+            Integer id = cursor.getInt(idColumn);
+            String title = cursor.getString(titleColumn);
+            Double performance = cursor.getDouble(performanceColumn);
+            Double score = cursor.getDouble(scoreColumn);
+            Long start = cursor.getLong(startColumn);
+            Long finish = cursor.getLong(finishColumn);
+            String description = cursor.getString(descriptionColumn);
+            String category = cursor.getString(categoryColumn);
+
+            Activity activity = SystemAD.toActivity(id, title,performance,start,finish,score,description,category);
+
+            listActivity.add(activity);
+
+        }
+        cursor.close();
+        database.close();
+
+        return listActivity;
     }
 
 }

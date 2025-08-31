@@ -5,32 +5,43 @@ import android.app.TimePickerDialog;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 
 import org.w3c.dom.Text;
 
+import java.sql.Array;
 import java.util.Calendar;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import br.com.automaticdiary.R;
 import br.com.automaticdiary.entities.Activity;
+import br.com.automaticdiary.resources.AdapterRegisterActivity;
 import br.com.automaticdiary.resources.DB;
 import br.com.automaticdiary.resources.SystemAD;
 
 /**
  * A simple {@link Fragment} subclass.
- * Use the {@link RegisterActivity#newInstance} factory method to
+ * Use the {@link RegisterActivity #newInstance} factory method to
  * create an instance of this fragment.
  */
 public class RegisterActivity extends Fragment {
@@ -48,6 +59,8 @@ public class RegisterActivity extends Fragment {
     private AppCompatButton lastDeleteButton;
     private AppCompatButton resetButton;
 
+    private RecyclerView registerActivityRecyclerView;
+
     private String title;
     private Double performance;
     private Calendar startDate;
@@ -55,7 +68,6 @@ public class RegisterActivity extends Fragment {
     private Double score;
     private String description;
     private String category;
-
 
     private TextWatcher dateTimeEditTextOnChange;
 
@@ -118,6 +130,24 @@ public class RegisterActivity extends Fragment {
         registerButton = view.findViewById(R.id.registerButton);
         lastDeleteButton = view.findViewById(R.id.lastDeleteButton);
         resetButton = view.findViewById(R.id.resetButton);
+
+        registerActivityRecyclerView = view.findViewById(R.id.registerActivityRecyclerView);
+
+        ArrayAdapter adapterSpinner = new ArrayAdapter<>(
+                this.getContext(),
+                R.layout.registeractivityspinner_item,
+                getResources().getStringArray(R.array.ActivityCategory)
+        );
+
+        adapterSpinner.setDropDownViewResource(R.layout.registeractivityspinnerdropdown_item);
+        categorySpinner.setAdapter(adapterSpinner);
+
+        RecyclerView.LayoutManager layoutManger = new LinearLayoutManager(getActivity().getApplicationContext());
+        registerActivityRecyclerView.setLayoutManager(layoutManger);
+        registerActivityRecyclerView.setHasFixedSize(true);
+        registerActivityRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity().getApplicationContext(), LinearLayout.VERTICAL));
+
+        refreshRegisterActivityRecyclerView();
 
         Calendar now = Calendar.getInstance();
 
@@ -196,7 +226,6 @@ public class RegisterActivity extends Fragment {
         finishTimeEditText.addTextChangedListener(dateTimeEditTextOnChange);
 
         registerButton.setOnClickListener(v ->{
-
             registerActivity();
         });
 
@@ -211,5 +240,17 @@ public class RegisterActivity extends Fragment {
 
         Activity activity = SystemAD.toActivity(null, title, performance, startDate, finishDate, score, description, category);
         DB.registerActivity(activity, this);
+        refreshRegisterActivityRecyclerView();
+    }
+
+    public void refreshRegisterActivityRecyclerView(){
+        List<Activity> listActivity = DB.findAllRegisterActivity(this);
+
+        while(listActivity.size() > 20){
+            listActivity.remove(20);
+        }
+
+        AdapterRegisterActivity adapter = new AdapterRegisterActivity(listActivity);
+        registerActivityRecyclerView.setAdapter(adapter);
     }
 }

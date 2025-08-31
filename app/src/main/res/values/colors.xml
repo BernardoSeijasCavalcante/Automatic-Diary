@@ -2,4 +2,10 @@
 <resources>
     <color name="colorButtonHome_night">#1E1F22</color>
     <color name="colorButtonHomeStroke_night">#FFFFFF</color>
+
+    <color name="colorItemRegisterActivity">#FFFFFF</color>
+    <color name="colorItemRegisterActivity_TextColor">#000000</color>
+    <color name="colorBackgroundRegisterActivity">#21A265</color>
+
+    <color name="white">#FFFFFF</color>
 </resources>
