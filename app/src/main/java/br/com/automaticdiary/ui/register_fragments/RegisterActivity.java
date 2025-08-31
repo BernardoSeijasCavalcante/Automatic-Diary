@@ -2,8 +2,10 @@ package br.com.automaticdiary.ui.register_fragments;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.fragment.app.Fragment;
 
 import android.text.Editable;
@@ -22,6 +24,9 @@ import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
 import br.com.automaticdiary.R;
+import br.com.automaticdiary.entities.Activity;
+import br.com.automaticdiary.resources.DB;
+import br.com.automaticdiary.resources.SystemAD;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -39,10 +44,17 @@ public class RegisterActivity extends Fragment {
     private EditText finishTimeEditText;
     private TextInputEditText descriptionTextInput;
     private Spinner categorySpinner;
+    private AppCompatButton registerButton;
+    private AppCompatButton lastDeleteButton;
+    private AppCompatButton resetButton;
 
-
-    Calendar startDate;
-    Calendar finishDate;
+    private String title;
+    private Double performance;
+    private Calendar startDate;
+    private Calendar finishDate;
+    private Double score;
+    private String description;
+    private String category;
 
 
     private TextWatcher dateTimeEditTextOnChange;
@@ -68,9 +80,9 @@ public class RegisterActivity extends Fragment {
 
                 long diffMilisseconds = finishDate.getTimeInMillis() - startDate.getTimeInMillis();
 
-                Double performance = (diffMilisseconds / (1000.0 * 60.0 * 60.0));
+                performance = (diffMilisseconds / (1000.0 * 60.0 * 60.0));
 
-                Double score = performance * 20.0;
+                score = performance * 20.0;
 
                 long performanceHours = TimeUnit.MILLISECONDS.toHours(diffMilisseconds);
                 long performanceMinutes = TimeUnit.MILLISECONDS.toMinutes(diffMilisseconds) - TimeUnit.HOURS.toMinutes(performanceHours);
@@ -102,6 +114,10 @@ public class RegisterActivity extends Fragment {
         finishTimeEditText = view.findViewById(R.id.finishTimeEditText);
         descriptionTextInput = view.findViewById(R.id.descriptionTextInput);
         categorySpinner = view.findViewById(R.id.categorySpinner);
+
+        registerButton = view.findViewById(R.id.registerButton);
+        lastDeleteButton = view.findViewById(R.id.lastDeleteButton);
+        resetButton = view.findViewById(R.id.resetButton);
 
         Calendar now = Calendar.getInstance();
 
@@ -179,7 +195,21 @@ public class RegisterActivity extends Fragment {
         finishDateEditText.addTextChangedListener(dateTimeEditTextOnChange);
         finishTimeEditText.addTextChangedListener(dateTimeEditTextOnChange);
 
+        registerButton.setOnClickListener(v ->{
+
+            registerActivity();
+        });
+
 
         return view;
+    }
+
+    public void registerActivity(){
+        title = titleTextInput.getText().toString();
+        description = descriptionTextInput.getText().toString();
+        category = categorySpinner.getSelectedItem().toString();
+
+        Activity activity = SystemAD.toActivity(null, title, performance, startDate, finishDate, score, description, category);
+        DB.registerActivity(activity, this);
     }
 }

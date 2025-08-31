@@ -1,24 +1,26 @@
 package br.com.automaticdiary.entities;
 
 import java.time.Instant;
+import java.util.Calendar;
 
 import br.com.automaticdiary.enums.ActivityCategory;
 
 public class Activity {
 
+    private Integer id;
     private String title;
     private Double performance;
-    private Instant start;
-    private Instant finish;
+    private Calendar start;
+    private Calendar finish;
     private Double score;
     private String description;
-    private ActivityCategory category;
+    private String category;
 
     public Activity(){
 
     }
 
-    public Activity(String title, Double performance, Instant start, Instant finish, Double score, String description, ActivityCategory category) {
+    public Activity(String title, Double performance, Calendar start, Calendar finish, Double score, String description, String category) {
         this.title = title;
         this.performance = performance;
         this.start = start;
@@ -26,6 +28,25 @@ public class Activity {
         this.score = score;
         this.description = description;
         this.category = category;
+    }
+
+    public Activity(Integer id, String title, Double performance, Calendar start, Calendar finish, Double score, String description, String category) {
+        this.id = id;
+        this.title = title;
+        this.performance = performance;
+        this.start = start;
+        this.finish = finish;
+        this.score = score;
+        this.description = description;
+        this.category = category;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getTitle() {
@@ -44,19 +65,19 @@ public class Activity {
         this.performance = performance;
     }
 
-    public Instant getStart() {
+    public Calendar getStart() {
         return start;
     }
 
-    public void setStart(Instant start) {
+    public void setStart(Calendar start) {
         this.start = start;
     }
 
-    public Instant getFinish() {
+    public Calendar getFinish() {
         return finish;
     }
 
-    public void setFinish(Instant finish) {
+    public void setFinish(Calendar finish) {
         this.finish = finish;
     }
 
@@ -76,11 +97,11 @@ public class Activity {
         this.description = description;
     }
 
-    public ActivityCategory getCategory() {
+    public String getCategory() {
         return category;
     }
 
-    public void setCategory(ActivityCategory category) {
+    public void setCategory(String category) {
         this.category = category;
     }
 }
