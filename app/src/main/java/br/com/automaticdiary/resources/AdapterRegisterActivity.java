@@ -48,15 +48,12 @@ public class AdapterRegisterActivity extends RecyclerView.Adapter<AdapterRegiste
 
         holder.titleEditText.setText(activity.getTitle());
 
-        int hours = activity.getPerformance().intValue();
-        Double minuteAux = activity.getPerformance() - (double) hours;
-        int minute = (int)(minuteAux * 60.0);
-        holder.performanceEditText.setText(hours + "h" + ((minute < 10) ? "0" : "") + minute);
+        holder.performanceEditText.setText(SystemAD.getPerformanceText(activity.getPerformance()));
 
         Calendar start = activity.getStart();
 
-        holder.startDateEditText.setText(start.get(Calendar.DAY_OF_MONTH) + "/" + start.get(Calendar.MONTH) + "/" + start.get(Calendar.YEAR));
-        holder.startTimeEditText.setText(start.get(Calendar.HOUR_OF_DAY) + ":" + start.get(Calendar.MINUTE));
+        holder.startDateEditText.setText(SystemAD.getDate(activity.getStart()));
+        holder.startTimeEditText.setText(SystemAD.getTime(activity.getStart()));
 
         holder.scoreEditText.setText(activity.getScore().toString());
     }

@@ -22,6 +22,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
@@ -70,6 +71,7 @@ public class RegisterActivity extends Fragment {
     private String category;
 
     private TextWatcher dateTimeEditTextOnChange;
+    private ArrayAdapter adapterSpinner;
 
     public RegisterActivity() {
         // Required empty public constructor
@@ -90,18 +92,11 @@ public class RegisterActivity extends Fragment {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
 
-                long diffMilisseconds = finishDate.getTimeInMillis() - startDate.getTimeInMillis();
+                performance = SystemAD.getPerformance(startDate, finishDate);
 
-                performance = (diffMilisseconds / (1000.0 * 60.0 * 60.0));
+                score = SystemAD.getScore(performance);
 
-                score = performance * 20.0;
-
-                long performanceHours = TimeUnit.MILLISECONDS.toHours(diffMilisseconds);
-                long performanceMinutes = TimeUnit.MILLISECONDS.toMinutes(diffMilisseconds) - TimeUnit.HOURS.toMinutes(performanceHours);
-
-                String performanceText = performanceHours + "h" + ((performanceMinutes < 10) ? "0" : "") + performanceMinutes;
-
-                performanceEditText.setText(performanceText);
+                performanceEditText.setText(SystemAD.getPerformanceText(startDate, finishDate));
                 scoreEditText.setText(String.format("%.2f",score));
             }
 
@@ -133,7 +128,7 @@ public class RegisterActivity extends Fragment {
 
         registerActivityRecyclerView = view.findViewById(R.id.registerActivityRecyclerView);
 
-        ArrayAdapter adapterSpinner = new ArrayAdapter<>(
+        adapterSpinner = new ArrayAdapter<>(
                 this.getContext(),
                 R.layout.registeractivityspinner_item,
                 getResources().getStringArray(R.array.ActivityCategory)
@@ -151,25 +146,18 @@ public class RegisterActivity extends Fragment {
 
         Calendar now = Calendar.getInstance();
 
-        //-----Momento Atual da Execução do Fragment----------
-
-        int year = now.get(Calendar.YEAR);
-        int month = now.get(Calendar.MONTH);
-        int dayOfMonth = now.get(Calendar.DAY_OF_MONTH);
-
-        int hour = now.get(Calendar.HOUR_OF_DAY);
-        int minute = now.get(Calendar.MINUTE);
-
-        //-----------------------------------------------------
-
         startDate = Calendar.getInstance();
         finishDate = Calendar.getInstance();
 
-        startDateEditText.setText(dayOfMonth + "/" + ((month < 10) ? "0" : "") + (month + 1) + "/" + year);
-        startTimeEditText.setText(hour + ":" + ((minute < 10) ? "0" : "") + minute);
+        int year = startDate.get(Calendar.YEAR);
+        int month = startDate.get(Calendar.MONTH);
+        int dayOfMonth = startDate.get(Calendar.DAY_OF_MONTH);
 
-        finishDateEditText.setText(dayOfMonth + "/" + ((month < 10) ? "0" : "") + (month + 1) + "/" + year);
-        finishTimeEditText.setText(hour + ":" + ((minute < 10) ? "0" : "") + minute);
+        int hour = startDate.get(Calendar.HOUR_OF_DAY);
+        int minute = startDate.get(Calendar.MINUTE);
+
+
+        resetFields();
 
         startDateEditText.setOnClickListener(v -> {
 
@@ -177,7 +165,7 @@ public class RegisterActivity extends Fragment {
                     view.getContext(),
                     (viewOn,yearOn,monthOn,dayOfMonthOn) ->{
                         startDate.set(yearOn, monthOn, dayOfMonthOn);
-                        startDateEditText.setText(dayOfMonthOn + "/" + ((monthOn < 10) ? "0" : "") + (monthOn + 1) + "/" + yearOn);
+                        startDateEditText.setText(SystemAD.getDate(dayOfMonthOn, monthOn, yearOn));
                     },year,month,dayOfMonth
             );
             datePickerDialog.show();
@@ -189,7 +177,7 @@ public class RegisterActivity extends Fragment {
                     view.getContext(),
                     (viewOn,hourOn,minuteOn) ->{
                         startDate.set(startDate.get(Calendar.YEAR), startDate.get(Calendar.MONTH), startDate.get(Calendar.DAY_OF_MONTH),hourOn,minuteOn);
-                        startTimeEditText.setText(hourOn + ":" + ((minuteOn < 10) ? "0" : "") + minuteOn);
+                        startTimeEditText.setText(SystemAD.getTime(hourOn, minuteOn));
                     },hour,minute,true
             );
 
@@ -201,7 +189,7 @@ public class RegisterActivity extends Fragment {
                     view.getContext(),
                     (viewOn,yearOn,monthOn,dayOfMonthOn) ->{
                         finishDate.set(yearOn, monthOn, dayOfMonthOn);
-                        finishDateEditText.setText(dayOfMonthOn + "/" + ((monthOn < 10) ? "0" : "") + (monthOn + 1) + "/" + yearOn);
+                        finishDateEditText.setText(SystemAD.getDate(dayOfMonthOn, monthOn, yearOn));
                     },year,month,dayOfMonth
             );
             datePickerDialog.show();
@@ -213,7 +201,7 @@ public class RegisterActivity extends Fragment {
                     view.getContext(),
                     (viewOn, hourOn, minuteOn) -> {
                         finishDate.set(finishDate.get(Calendar.YEAR), finishDate.get(Calendar.MONTH), finishDate.get(Calendar.DAY_OF_MONTH),hourOn,minuteOn);
-                        finishTimeEditText.setText(hourOn + ":" + ((minuteOn < 10) ? "0" : "") + minuteOn);
+                        finishTimeEditText.setText(SystemAD.getTime(hourOn, minuteOn));
                     }, hour, minute, true
             );
 
@@ -226,20 +214,64 @@ public class RegisterActivity extends Fragment {
         finishTimeEditText.addTextChangedListener(dateTimeEditTextOnChange);
 
         registerButton.setOnClickListener(v ->{
-            registerActivity();
+            registerOrUpdateActivity();
         });
 
+        lastDeleteButton.setOnClickListener(v -> {
+            deleteLastActivity();
+        });
+
+        resetButton.setOnClickListener(v ->{
+            resetFields();
+        });
+
+        registerActivityRecyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+            @Override
+            public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+                View itemView = rv.findChildViewUnder(e.getX(),e.getY());
+
+                if(itemView != null){
+                    int position = rv.getChildAdapterPosition(itemView);
+                    Activity activity = AdapterRegisterActivity.listActivity.get(position);
+                    fillBlanksByActivity(activity);
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public void onTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+
+            }
+
+            @Override
+            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+
+            }
+        });
 
         return view;
     }
 
-    public void registerActivity(){
-        title = titleTextInput.getText().toString();
-        description = descriptionTextInput.getText().toString();
-        category = categorySpinner.getSelectedItem().toString();
+    public void registerOrUpdateActivity(){
+        saveAttributes();
 
-        Activity activity = SystemAD.toActivity(null, title, performance, startDate, finishDate, score, description, category);
-        DB.registerActivity(activity, this);
+        if(SystemAD.selectedActivity != null) { //Atualiza Atividade
+            Activity activity = SystemAD.toActivity(SystemAD.selectedActivity.getId(), title, performance, startDate, finishDate, score, description, category);
+            DB.updateActivity(activity, this);
+            SystemAD.selectedActivity = null;
+            SystemAD.lastRegisteredActivity = activity;
+        }else{ //Registra Atividade
+            Activity activity = SystemAD.toActivity(null, title, performance, startDate, finishDate, score, description, category);
+            SystemAD.lastRegisteredActivity = DB.registerActivity(activity, this);
+        }
+        refreshRegisterActivityRecyclerView();
+        resetFields();
+    }
+
+    public void deleteLastActivity(){
+        Activity activity = DB.deleteLastActivity(this);
+        fillBlanksByActivity(activity);
         refreshRegisterActivityRecyclerView();
     }
 
@@ -253,4 +285,75 @@ public class RegisterActivity extends Fragment {
         AdapterRegisterActivity adapter = new AdapterRegisterActivity(listActivity);
         registerActivityRecyclerView.setAdapter(adapter);
     }
+
+    public void fillBlanksByActivity(Activity activity){
+        SystemAD.selectedActivity = activity;
+
+        titleTextInput.setText(activity.getTitle());
+        startDateEditText.setText(SystemAD.getDate(activity.getStart()));
+        startTimeEditText.setText(SystemAD.getTime(activity.getStart()));
+        finishDateEditText.setText(SystemAD.getDate(activity.getFinish()));
+        finishTimeEditText.setText(SystemAD.getTime(activity.getFinish()));
+        descriptionTextInput.setText(activity.getDescription());
+        categorySpinner.setSelection(adapterSpinner.getPosition(activity.getCategory()));
+
+        //Para evitar a alteração pelo evento de mudança dos campos, é necessário que a alteração destes fique por último
+        performanceEditText.setText(SystemAD.getPerformanceText(activity.getPerformance()));
+        scoreEditText.setText(activity.getScore().toString());
+
+        Toast.makeText(this.getContext(),"Registro de Atividade carregado com sucesso!",Toast.LENGTH_LONG).show();
+    }
+
+    public void saveAttributes(){ //Salva os valores dos campos nas variáveis de instanciação de activity reservadas ao fragment
+        title = titleTextInput.getText().toString();
+        description = descriptionTextInput.getText().toString();
+        category = categorySpinner.getSelectedItem().toString();
+
+        String [] filterStartDate = startDateEditText.getText().toString().split("/");
+        String[] filterStartTime = startTimeEditText.getText().toString().split(":");
+        startDate.set(Integer.parseInt(filterStartDate[2]),
+                Integer.parseInt(filterStartDate[1]),
+                Integer.parseInt(filterStartDate[0]),
+                Integer.parseInt(filterStartTime[0]),
+                Integer.parseInt(filterStartTime[1]));
+
+        String [] filterFinishDate = finishDateEditText.getText().toString().split("/");
+        String[] filterFinishTime = finishTimeEditText.getText().toString().split(":");
+        finishDate.set(Integer.parseInt(filterFinishDate[2]),
+                Integer.parseInt(filterFinishDate[1]),
+                Integer.parseInt(filterFinishDate[0]),
+                Integer.parseInt(filterFinishTime[0]),
+                Integer.parseInt(filterFinishTime[1]));
+        performance = SystemAD.getPerformance(performanceEditText.getText().toString());
+        score = Double.parseDouble(scoreEditText.getText().toString());
+    }
+
+    public void resetFields(){
+        titleTextInput.setText("");
+        //-----Momento Atual da Execução do Fragment----------
+
+        startDate = Calendar.getInstance();
+        finishDate = Calendar.getInstance();
+
+        int year = startDate.get(Calendar.YEAR);
+        int month = startDate.get(Calendar.MONTH);
+        int dayOfMonth = startDate.get(Calendar.DAY_OF_MONTH);
+
+        int hour = startDate.get(Calendar.HOUR_OF_DAY);
+        int minute = startDate.get(Calendar.MINUTE);
+
+        //-----------------------------------------------------
+
+        startDateEditText.setText(SystemAD.getDate(dayOfMonth, month, year));
+        startTimeEditText.setText(SystemAD.getTime(hour, minute));
+        finishDateEditText.setText(SystemAD.getDate(dayOfMonth, month, year));
+        finishTimeEditText.setText(SystemAD.getTime(hour, minute));
+        performanceEditText.setText("");
+        scoreEditText.setText("");
+        descriptionTextInput.setText("");
+        categorySpinner.setSelection(0);
+
+        SystemAD.selectedActivity = null;
+    }
+
 }

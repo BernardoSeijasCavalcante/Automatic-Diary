@@ -7,7 +7,7 @@ import br.com.automaticdiary.enums.ActivityCategory;
 
 public class Activity {
 
-    private Integer id;
+    private Long id;
     private String title;
     private Double performance;
     private Calendar start;
@@ -30,7 +30,7 @@ public class Activity {
         this.category = category;
     }
 
-    public Activity(Integer id, String title, Double performance, Calendar start, Calendar finish, Double score, String description, String category) {
+    public Activity(Long id, String title, Double performance, Calendar start, Calendar finish, Double score, String description, String category) {
         this.id = id;
         this.title = title;
         this.performance = performance;
@@ -41,11 +41,11 @@ public class Activity {
         this.category = category;
     }
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

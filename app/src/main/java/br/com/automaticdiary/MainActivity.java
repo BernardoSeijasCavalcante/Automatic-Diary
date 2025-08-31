@@ -17,6 +17,7 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import br.com.automaticdiary.databinding.ActivityMainBinding;
+import br.com.automaticdiary.resources.DB;
 import br.com.automaticdiary.ui.dashboard.DashboardFragment;
 import br.com.automaticdiary.ui.home.HomeFragment;
 
@@ -56,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+        DB.startDB(getApplicationContext());
 
     }
 
