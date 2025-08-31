@@ -7,10 +7,15 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
+import br.com.automaticdiary.MainActivity;
+import br.com.automaticdiary.R;
 import br.com.automaticdiary.databinding.FragmentHomeBinding;
+import br.com.automaticdiary.ui.register_fragments.RegisterActivity;
 
 public class HomeFragment extends Fragment {
 
@@ -18,15 +23,22 @@ public class HomeFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        HomeViewModel homeViewModel =
-                new ViewModelProvider(this).get(HomeViewModel.class);
+        View root = inflater.inflate(R.layout.fragment_home, container, false);
 
-        binding = FragmentHomeBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
+        AppCompatButton registerActivityButton = root.findViewById(R.id.registerActivity);
 
-        final TextView textView = binding.textHome;
-        homeViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
+        registerActivityButton.setOnClickListener(v -> {
+            changeFragment(new RegisterActivity());
+        });
+
         return root;
+    }
+
+    public void changeFragment(Fragment fragment){
+        FragmentTransaction transaction = this.getActivity().getSupportFragmentManager().beginTransaction();
+
+        transaction.replace(R.id.nav_host_fragment_activity_main, fragment);
+        transaction.commit();
     }
 
     @Override
